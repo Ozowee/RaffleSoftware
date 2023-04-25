@@ -1,0 +1,11 @@
+{
+    "UserData":{
+        "2capKey":"x",
+        "UserAgent":"x",
+        "WebhookUrl":"x",
+        "MinimumDelay":20,
+        "MaximumDelay":40,
+	"MinimumGiveawayValueToJoin":5,
+        "License":"R-3CFDF6-6D61E0D6-9AF32FW"
+    }
+}
