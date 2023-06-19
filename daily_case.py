@@ -16,9 +16,8 @@ with open('accounts.csv','r') as file:
     header = next(acc)
     if header != None:
         for lines in acc:
-            if lines[0]!='' and lines[1]!='':
-                cookies.append(lines[0])
-                proxies.append(lines[1])
+            cookies.append(lines[0])
+            proxies.append(lines[1])
 
 with open("settings.json",'r',encoding='UTF-8') as file:
         FileData = json.load(file)
@@ -75,6 +74,7 @@ def DailyCase():
             'authority': 'key-drop.com',
             'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryqDIEeLh8ahuAyQ9P',
             'cookie': cookie,
+            'accept-language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
             'referer': 'https://key-drop.com/pl/daily-case',
             'user-agent': UserAgent,
         }
@@ -84,26 +84,33 @@ def DailyCase():
         daily_case_req = session.post('https://key-drop.com/pl/apiData/DailyFree/open', headers=headers,proxy=SwitchString(proxies[task]), data=data)
 
         if daily_case_req.status_code==200:
-            if daily_case_req.json()['status']==True:
-                log_info(f"[{task}] Case opened!")
-                updatebar(1,0,0,0)
-                item_type = daily_case_req.json()['winnerData']['type']
-                if item_type == 'item':
-                    updatebar(0,1,0,0)
-                    title = daily_case_req.json()['winnerData']['prizeValue']['title']
-                    value = daily_case_req.json()['winnerData']['prizeValue']['price']
-                    log_success(f"[{task}] You received {title} {value} PLN")
-                if item_type == 'gold':
-                    updatebar(0,0,1,0)
-                    prize_value = daily_case_req.json()['winnerData']['prizeValue']
-                    log_success(f"[{task}] You received {prize_value} GOLD")
+            try:
+                if daily_case_req.json()['status']==True:
+                    log_info(f"[{task}] Case opened!")
+                    updatebar(1,0,0,0)
+                    item_type = daily_case_req.json()['winnerData']['type']
+                    if item_type == 'item':
+                        updatebar(0,1,0,0)
+                        title = daily_case_req.json()['winnerData']['prizeValue']['title']
+                        value = daily_case_req.json()['winnerData']['prizeValue']['price']
+                        log_success(f"[{task}] You received {title} {value} PLN")
+                    if item_type == 'gold':
+                        updatebar(0,0,1,0)
+                        prize_value = daily_case_req.json()['winnerData']['prizeValue']
+                        log_success(f"[{task}] You received {prize_value} GOLD")
 
-                    
-            if daily_case_req.json()['status']==False:
-                if daily_case_req.json()['error']=='W tej chwili nie możesz otworzyć tej skrzynki':
-                    log(f"[{task}] You have already opened this case today! Try tomorrow :)")
+                        
+                if daily_case_req.json()['status']==False:
+                    if daily_case_req.json()['error']=='W tej chwili nie możesz otworzyć tej skrzynki':
+                        log(f"[{task}] You have already opened this case today! Try tomorrow :)")
+                    if daily_case_req.json()['error']=="Twój avatar jest niepoprawny":
+                        log_error_p(f"[{task}] Set keydrop_image as your steam avatar!")
+            except Exception as er:
+                if "Proxy responded with non 200 code: 407" in str(er):
+                    log_error_p(f"[{task}] Connection error")
+                    time.sleep(5)
                 else:
-                    log_error_p(daily_case_req.text)
+                    log_error_p(str(er))
         else:
             print(daily_case_req.text)
 

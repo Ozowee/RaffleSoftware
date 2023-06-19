@@ -40,6 +40,7 @@ nonwins = 0
 acc_hold = 0
 acc_failed = 0
 acc_not_eligible = 0
+global_username = ""
 
 def updatebar(Xjoins,Xwins,Xcaptcha,Xacchold,Xaccfailed,XaccNotEligible):
     global joins
@@ -66,6 +67,11 @@ def time_elapsed():
         ctypes.windll.kernel32.SetConsoleTitleW(f"RafalAIO | Accounts: {len(cookies)} | Entries: {joins} Wins: {wins} Captchas: {captcha_bar} HoldAccounts: {acc_hold} FailedAccounts: {acc_failed} NotEligible: {acc_not_eligible} | Time Elapsed: {elapsed_time_str}")
         time.sleep(1)
 
+def SaveUsername(user):
+    global global_username
+    global_username = user
+    
+
 def SwitchString(proxy):
     if proxy == "x":
         proxy = ""
@@ -80,23 +86,6 @@ def SwitchString(proxy):
 
 def Token(cookie,proxy):
     session = tls_client.Session(     client_identifier="chrome_112" )
-    cookies = {
-    '_fbp': 'fb.1.1678559414730.1712563640',
-    '_tt_enable_cookie': '1',
-    '_ttp': 'yLT5ZCQQG5dgteqElyHotv2m9F5',
-    '_gid': 'GA1.2.1478622303.1680713494',
-    'key-lang': 'PL',
-    'crisp_key': 'Xw7vi27tooV%2B19kXCRXSJSbjg3mJeb9z3FBpu5Qafv%2FicaxaqY5hDqPfK5F%2B%2FdUHdLk3CllILDGP8IXV23WPvXS0uSmyJvSthK2286UZYnh%2F1s3cZJOFQZX0jLT%2B24Aq',
-    'crisp-client%2Fsession%2F41b55e43-af4f-4213-b7f5-44ba91542ff9': 'session_e617e38e-bb1b-4e8b-80ee-bc91fa6a02a7',
-    '__vioShield': '822293ed65f5c010cf8051c1a1ad452c',
-    '_gac_UA-119884135-1': '1.1681488036.Cj0KCQiAjbagBhD3ARIsANRrqEvepJA1LknRwTcqqTX2NGahL50xfwsgfQpLcnQ6LAO8IowPmU-dyGEaAhe5EALw_wcB',
-    '__cf_bm': 'qNVzhp10xWC2oaWwtquWaTw_t7fdA_MD8yYAvdhdr2Y-1681516631-0-AfCro4mJBTUfSGL1CjVbjRIgt8KBmWk1E2l5UYr2ESZ5Q/W8uO23f9rNsNKVewx70VrYmDDRyVdfvH1YN61DEoZEp1g9aeE0UFEaAmXfOicdIKQ4OEpEN+hPS5fXVCpkeg==',
-    'session_id': 'kd7080ftbf4oi7uq866894ac2kh259t5',
-    '_ga': 'GA1.2.1206317788.1678559414',
-    '_gat_UA-119884135-1': '1',
-    '_ga_MF8E1V82S9': 'GS1.1.1681510367.117.1.1681517172.47.0.0',
-    }
-
     headers = {
         'Host': 'key-drop.com',
         'user-agent': UserAgent,
@@ -221,11 +210,12 @@ def Monitor(cookie,task_id,proxy,gw_type):
             if "i/o timeout" in str(tls_er):
                     log_error_p(f"[{task_id}][{giveway_list_new.status_code}] Timeout on monitoring, waiting 5s")
                     time.sleep(5)
+                    continue
                       
             else:
                 log_error_p(f"[{task_id}][{giveway_list_new.status_code}] {tls_er}")
                 time.sleep(5)
-                  
+                
         
         if id_new_giveaway != id_giveaway:
             try:
@@ -252,6 +242,7 @@ def Monitor(cookie,task_id,proxy,gw_type):
                     if response_join.json()['success']==True:
                         updatebar(1,0,0,0,0,0)
                         username = response_join.json()['data']['username']
+                        SaveUsername(username)
                         slot = response_join.json()['data']['slot']
                         log_success(f"[{task_id}][{id_new_giveaway}][{username}] Successfully joined giveaway! Slot {slot}/1000")
                         if len(id_giveaway) > 1:
@@ -268,8 +259,9 @@ def Monitor(cookie,task_id,proxy,gw_type):
 
                                 hours, minutes, seconds = [int(time[:-1]) for time in strip_str.split()]
                                 total_seconds = (hours * 3600) + (minutes * 60) + seconds
+                                
                                 if len(id_giveaway) > 1:
-                                    CheckWinner(id_giveaway,task_id,cookie,task_id,proxy)    
+                                    CheckWinner(id_giveaway,global_username,cookie,task_id,proxy)    
                                 log_info(f"[{task_id}][{id_new_giveaway}] You have to wait before entering new raffle! Waiting {strip_str}")
                                 updatebar(0,0,0,1,0,0)
                                 time.sleep(total_seconds)
@@ -283,7 +275,7 @@ def Monitor(cookie,task_id,proxy,gw_type):
                                 hours, minutes, seconds = [int(time[:-1]) for time in strip_str.split()]
                                 total_seconds = (hours * 3600) + (minutes * 60) + seconds
                                 if len(id_giveaway) > 1:
-                                    CheckWinner(id_giveaway,task_id,cookie,task_id,proxy)
+                                    CheckWinner(id_giveaway,global_username,cookie,task_id,proxy)
                                 log_info(f"[{task_id}][{id_new_giveaway}] You have to wait before entering new raffle! Waiting {strip_str}")
                                 updatebar(0,0,0,1,0,0)
                                 time.sleep(total_seconds)
@@ -329,7 +321,7 @@ def Monitor(cookie,task_id,proxy,gw_type):
                                         log_success(f"[{task_id}] Captcha solved!")
                                         username = response_join2.json()['data']['username']
                                         slot = response_join2.json()['data']['slot']
-
+                                        SaveUsername(username)
                                         log_success(f"[{task_id}][{id_new_giveaway}][{username}] Successfully joined giveaway! {slot}/1000")
                                         if len(id_giveaway) > 1:
                                             CheckWinner(id_giveaway,username,cookie,task_id,proxy)
@@ -344,7 +336,7 @@ def Monitor(cookie,task_id,proxy,gw_type):
                                                 hours, minutes, seconds = [int(time[:-1]) for time in strip_str.split()]
                                                 total_seconds = (hours * 3600) + (minutes * 60) + seconds
                                                 if len(id_giveaway) > 1:
-                                                    CheckWinner(id_giveaway,task_id,cookie,task_id,proxy)
+                                                    CheckWinner(id_giveaway,global_username,cookie,task_id,proxy)
                                                 log_info(f"[{task_id}][{id_new_giveaway}] You have to wait before entering new raffle! Waiting {strip_str}")
                                                 updatebar(0,0,0,1,0,0)
                                                 time.sleep(total_seconds)
@@ -358,7 +350,7 @@ def Monitor(cookie,task_id,proxy,gw_type):
                                                 hours, minutes, seconds = [int(time[:-1]) for time in strip_str.split()]
                                                 total_seconds = (hours * 3600) + (minutes * 60) + seconds
                                                 if len(id_giveaway) > 1:
-                                                    CheckWinner(id_giveaway,task_id,cookie,task_id,proxy)
+                                                    CheckWinner(id_giveaway,global_username,cookie,task_id,proxy)
                                                 log_info(f"[{task_id}][{id_new_giveaway}] You have to wait before entering new raffle! Waiting {strip_str}")
                                                 updatebar(0,0,0,1,0,0)
                                                 time.sleep(total_seconds)
@@ -473,6 +465,10 @@ def Monitor(cookie,task_id,proxy,gw_type):
                     log_error_p(f"[{task_id}] Timeout on joining, retrying in 5s")
                     time.sleep(5)
                     continue 
+                if "Proxy responded with non 200 code: 407" in str(er):
+                    log_error_p(f"[{task_id}] Connection error, waiting 5s")
+                    time.sleep(5)
+                    continue
                 else:
                     log_error_p(f"[{task_id}] {er}")
                     time.sleep(5)

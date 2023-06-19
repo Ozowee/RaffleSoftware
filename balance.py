@@ -16,9 +16,8 @@ with open('accounts.csv','r') as file:
     header = next(acc)
     if header != None:
         for lines in acc:
-            if lines[0]!='' and lines[1]!='':
-                cookies.append(lines[0])
-                proxies.append(lines[1])
+            cookies.append(lines[0])
+            proxies.append(lines[1])
 
 with open("settings.json",'r',encoding='UTF-8') as file:
         FileData = json.load(file)
@@ -62,27 +61,34 @@ def SwitchString(proxy):
 def balance():
     threading.Thread(target=time_elapsed).start()
     total_value = 0
-    for task in range(len(cookies)):
-        session = tls_client.Session(     client_identifier="chrome_112" )
-        cookie = cookies[task]
-        headers = {
-            'authority': 'key-drop.com',
-            'User-Agent': UserAgent,
-            'Cookie': cookie,
-        }
+    while True:
+        try:
+            for task in range(len(cookies)):
+                session = tls_client.Session(     client_identifier="chrome_112" )
+                cookie = cookies[task]
+                headers = {
+                    'authority': 'key-drop.com',
+                    'accept-language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7',
+                    'User-Agent': UserAgent,
+                    'Cookie': cookie,
+                }
 
-        balance_req = session.get('https://key-drop.com/pl/panel/profil/eq_value', headers=headers,proxy=SwitchString(proxies[task]))
-        if balance_req.status_code == 200:
-            account_eq_value = balance_req.json()['fullPrice']
-            log_success(f"[{task}] Eq Value: {account_eq_value}")
-            updatebar(1,0)
-            total_value+=float(account_eq_value)
-        else:
-            updatebar(0,1)
-            log_error_p(balance_req.status_code)
-    log_success(f"Accounts: {len(cookies)} | Total eq value: {round(total_value,2)} PLN")
-
-
-
-
+                balance_req = session.get('https://key-drop.com/pl/panel/profil/eq_value', headers=headers,proxy=SwitchString(proxies[task]))
+                if balance_req.status_code == 200:
+                    account_eq_value = balance_req.json()['fullPrice']
+                    log_success(f"[{task}] Eq Value: {account_eq_value}")
+                    updatebar(1,0)
+                    total_value+=float(account_eq_value)
+                else:
+                    updatebar(0,1)
+                    log_error_p(balance_req.status_code)
+            log_success(f"Accounts: {len(cookies)} | Total eq value: {round(total_value,2)} PLN")
+            break
+        except Exception as er:
+            if "Proxy responded with non 200 code: 407" in str(er):
+                log_error_p(f"[{task}] Connection error, waiting 5s")
+                time.sleep(5)
+                continue
+            else:
+                log_error_p(str(er))
 

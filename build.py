@@ -23,11 +23,16 @@ with open("settings.json",'r',encoding='UTF-8') as file:
         FileData = json.load(file)
         licence_whop = FileData['UserData']['License']
 
+with open("access.json",'r') as accessFile:
+    jsonFile = json.load(accessFile)
+    whopAuthPart1 = jsonFile['Keys']['whopAuthPart1']
+    whopAuthPart2 = jsonFile['Keys']['whopAuthPart2']
+    whopAuthPart3 = jsonFile['Keys']['whopAuthPart3']
 
 def build():
-    misio1 = "G85pLtHvH24t07EoRg-"
-    misio2 = "vRz6ruJbje6gFOq1Do2vpeHE"
-    misio3 = "P5ferdQ9kxlCjC601Q_jygqQD-uu7VYk4TdiyWpilIg"
+    misio1 = whopAuthPart1
+    misio2 = whopAuthPart2
+    misio3 = whopAuthPart3
     
     whop_headers = {
     "accept": "application/json",
